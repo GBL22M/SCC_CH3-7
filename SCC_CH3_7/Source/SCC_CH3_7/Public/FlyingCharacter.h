@@ -2,29 +2,41 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "PlayerCharacter.generated.h"
+#include "FlyingCharacter.generated.h"
 
 class UCapsuleComponent;
-class USkeletaMeshComponent;
 class USpringArmComponent;
 class UCameraComponent;
-struct FInputActionValue;
+struct FInputActgionValue;
 
 UCLASS()
-class SCC_CH3_7_API APlayerCharacter : public APawn
+class SCC_CH3_7_API AFlyingCharacter : public APawn
 {
 	GENERATED_BODY()
 
 public:
-	APlayerCharacter();
+	AFlyingCharacter();
 
 protected:
+	virtual void BeginPlay() override;
+
+public:	
+	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	//bind function
 	UFUNCTION()
 	void Move(const FInputActionValue& value);
 	UFUNCTION()
 	void Look(const FInputActionValue& value);
+	UFUNCTION()
+	void UpDown(const FInputActionValue& value);
+	UFUNCTION()
+	void Roll(const FInputActionValue& value);
+
+	//
+	UFUNCTION()
+	bool IsGround();
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
@@ -39,4 +51,11 @@ public:
 private:
 	float MoveSpeed;
 	float LookSpeed;
+	float RollSpeed;
+	float UpSpeed;
+
+	FVector Gravity;
+
+	float MaxTraceDistance;
+	float MaxCollisionSphereRadius;
 };

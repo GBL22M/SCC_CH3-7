@@ -1,6 +1,5 @@
 #include "PlayerCharacter.h"
 #include "PlayerCharacterController.h"
-
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -11,7 +10,7 @@ APlayerCharacter::APlayerCharacter()
 	:MoveSpeed(500.f)
 	,LookSpeed(300.f)
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule Component"));	
 	SetRootComponent(CapsuleComp);
@@ -40,13 +39,6 @@ APlayerCharacter::APlayerCharacter()
 	CapsuleComp->SetSimulatePhysics(false);
 	SkeletalMeshComp->SetSimulatePhysics(false);
 }
-
-void APlayerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
