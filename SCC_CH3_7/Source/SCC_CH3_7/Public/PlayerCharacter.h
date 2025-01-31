@@ -8,6 +8,7 @@ class UCapsuleComponent;
 class USkeletaMeshComponent;
 class USpringArmComponent;
 class UCameraComponent;
+struct FInputActionValue;
 
 UCLASS()
 class SCC_CH3_7_API APlayerCharacter : public APawn
@@ -21,14 +22,22 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION()
+	void Move(const FInputActionValue& value);
+	UFUNCTION()
+	void Look(const FInputActionValue& value);
+
 public:
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
 	TObjectPtr<UCapsuleComponent> CapsuleComp;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
 	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComp;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
 	TObjectPtr<USpringArmComponent> SpringArmComp;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player|Components")
 	TObjectPtr<UCameraComponent> CameraComp;
 
+private:
+	float MoveSpeed;
+	float LookSpeed;
 };
