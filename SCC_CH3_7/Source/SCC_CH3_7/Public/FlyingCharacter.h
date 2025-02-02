@@ -28,6 +28,10 @@ public:
 	UFUNCTION()
 	void Move(const FInputActionValue& value);
 	UFUNCTION()
+	void StartMove(const FInputActionValue& value);
+	UFUNCTION()
+	void StopMove(const FInputActionValue& value);
+	UFUNCTION()
 	void Look(const FInputActionValue& value);
 	UFUNCTION()
 	void UpDown(const FInputActionValue& value);
@@ -37,6 +41,9 @@ public:
 	//
 	UFUNCTION()
 	bool IsGround();
+
+	UFUNCTION()
+	void TiltMoving();
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
@@ -58,4 +65,17 @@ private:
 
 	float MaxTraceDistance;
 	float MaxCollisionSphereRadius;
+
+	FRotator OriginRotator;
+	FVector Velocity;
+	FRotator CurrentRotation;
+	
+	double TargetPitch;
+	double TargetRoll;
+	double DeltaPitch;
+	double DeltaRoll;
+
+	bool IsMoveStart;
+	bool IsPositiveX;
+	bool IsPositiveY;
 };

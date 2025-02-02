@@ -9,11 +9,15 @@
 AFlyingCharacter::AFlyingCharacter()
 	:MoveSpeed(500.f)
 	,LookSpeed(300.f)
-	,RollSpeed(300.f)
+	,RollSpeed(200.f)
 	,UpSpeed(300.f)
 	,Gravity(FVector(0.f, 0.f, -98.f))
 	,MaxTraceDistance(20.f)
 	,MaxCollisionSphereRadius(20.f)
+	,OriginRotator(FRotator(0.f, 0.f, 0.f))
+	,Velocity(FVector::ZeroVector)
+	,CurrentRotation(FRotator::ZeroRotator)
+	,IsMoveStart(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -39,7 +43,7 @@ AFlyingCharacter::AFlyingCharacter()
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp);
-
+		
 	//disable simulate physics
 	CapsuleComp->SetSimulatePhysics(false);
 	SkeletalMeshComp->SetSimulatePhysics(false);
@@ -57,13 +61,15 @@ void AFlyingCharacter::Tick(float DeltaTime)
 
 	if (IsGround())
 	{
-
+		
 	}
 	if (!IsGround())
 	{
 		FVector NewLocation = Gravity * DeltaTime;
 		AddActorWorldOffset(NewLocation, true);
-	}
+	}	
+
+	TiltMoving();
 }
 
 void AFlyingCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -85,7 +91,22 @@ void AFlyingCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 					, this
 					, &AFlyingCharacter::Move);
 			}
-
+			if (PlayerController->MoveAction)
+			{
+				EnhancedInputComp->BindAction(
+					PlayerController->MoveAction
+					, ETriggerEvent::Started
+					, this
+					, &AFlyingCharacter::StartMove);
+			}
+			if (PlayerController->MoveAction)	
+			{
+				EnhancedInputComp->BindAction(
+					PlayerController->MoveAction
+					, ETriggerEvent::Completed
+					, this
+					, &AFlyingCharacter::StopMove);
+			}
 			if (PlayerController->LookAction)
 			{
 				EnhancedInputComp->BindAction(
@@ -118,10 +139,56 @@ void AFlyingCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AFlyingCharacter::Move(const FInputActionValue& value)
 {
-	const FVector2D MoveInput = value.Get<FVector2D>();
-	FVector NewLocation = FVector(MoveInput.X, MoveInput.Y, 0.f) * MoveSpeed * GetWorld()->GetDeltaSeconds();
+	const FVector2D MoveInput = value.Get<FVector2D>();	
+	FVector NewLocation = FVector(MoveInput.X, MoveInput.Y, 0) * MoveSpeed * GetWorld()->GetDeltaSeconds();
 
-	AddActorLocalOffset(NewLocation);
+	Velocity = NewLocation;
+
+	if (IsMoveStart)
+	{
+		if (Velocity.X > 0.f)
+		{
+			TargetPitch = CurrentRotation.Pitch - 15.;
+			DeltaPitch = Velocity.X;
+			IsPositiveX = true;
+		}
+		if (Velocity.X < 0.f)
+		{
+			TargetPitch = CurrentRotation.Pitch + 15.;
+			DeltaPitch = Velocity.X;
+			IsPositiveX = false;
+		}
+
+		if (Velocity.Y > 0.f)
+		{
+			TargetRoll = CurrentRotation.Roll + 15.;
+			DeltaRoll = Velocity.Y;
+			IsPositiveY = true;
+		}
+		if (Velocity.Y < 0.f)
+		{
+			TargetRoll = CurrentRotation.Roll - 15.;
+			DeltaRoll = Velocity.Y;
+			IsPositiveY = false;
+		}
+	}
+
+	IsMoveStart = false;
+	AddActorLocalOffset(NewLocation);	
+}
+
+void AFlyingCharacter::StartMove(const FInputActionValue& value)
+{
+	//[TODO] Change to Skeletal Mesh's rotation
+	CurrentRotation = GetActorRotation();
+	OriginRotator = CurrentRotation;
+
+	IsMoveStart = true;
+}
+
+void AFlyingCharacter::StopMove(const FInputActionValue& value)
+{	
+	Velocity = FVector(0.f, 0.f, 0.f);
 }
 
 void AFlyingCharacter::Look(const FInputActionValue& value)
@@ -160,16 +227,47 @@ bool AFlyingCharacter::IsGround()
 
 	FHitResult HitResult;
 
-	bool HasHit = GetWorld()->SweepSingleByChannel(
-		HitResult,
-		Start, End,
-		FQuat::Identity,
-		ECC_WorldStatic,
-		Sphere
-	);
+	bool HasHit = GetWorld()->SweepSingleByChannel(HitResult, Start, End, FQuat::Identity, ECC_WorldStatic, Sphere);
 
 	if (HasHit)					
-		return true;
-	
+		return true;	
 	return false;
+}
+
+void AFlyingCharacter::TiltMoving()
+{
+	//[flying]
+	//Tilt X(pitch)	
+	if (IsPositiveX && CurrentRotation.Pitch >= TargetPitch)
+	{		
+		CurrentRotation.Pitch -= DeltaPitch * 10.f * GetWorld()->GetDeltaSeconds();		
+		AddActorLocalRotation(FRotator(-DeltaPitch * 10.f * GetWorld()->GetDeltaSeconds(), 0.f, 0.f));
+	}
+	if (!IsPositiveX && CurrentRotation.Pitch <= TargetPitch)
+	{
+		CurrentRotation.Pitch += -DeltaPitch * 10.f * GetWorld()->GetDeltaSeconds();
+		AddActorLocalRotation(FRotator(-DeltaPitch * 10.f * GetWorld()->GetDeltaSeconds(), 0.f, 0.f));
+	}
+
+	//Tilt Y(Roll)
+	if (IsPositiveY && CurrentRotation.Roll <= TargetRoll)
+	{
+		CurrentRotation.Roll += DeltaRoll * 10.f * GetWorld()->GetDeltaSeconds();
+		AddActorLocalRotation(FRotator(0.f, 0.f, DeltaRoll * 10.f * GetWorld()->GetDeltaSeconds()));
+	}
+	if (!IsPositiveY && CurrentRotation.Roll >= TargetRoll)
+	{
+		CurrentRotation.Roll += DeltaRoll * 10.f * GetWorld()->GetDeltaSeconds();
+		AddActorLocalRotation(FRotator(0.f, 0.f, DeltaRoll * 10.f * GetWorld()->GetDeltaSeconds()));
+	}
+	
+	//[stop]
+	//back to origin rotator
+	if(Velocity.Length() == 0.f)
+	{		
+		FRotator CurrentRotator = GetActorRotation();
+		FRotator ToOriginRotator = FMath::Lerp(CurrentRotator, OriginRotator, GetWorld()->GetDeltaSeconds() * 8.f);
+
+		SetActorRotation(ToOriginRotator);				
+	}
 }
