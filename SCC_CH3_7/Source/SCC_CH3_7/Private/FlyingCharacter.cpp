@@ -18,14 +18,18 @@ AFlyingCharacter::AFlyingCharacter()
 	,Velocity(FVector::ZeroVector)
 	,CurrentRotation(FRotator::ZeroRotator)
 	,IsMoveStart(false)
+	,IsYawMoving(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	CapsuleComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule Component"));
 	SetRootComponent(CapsuleComp);
 
+	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("For Transform"));
+	SceneComp->SetupAttachment(CapsuleComp);
+
 	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Skeletal Mesh"));
-	SkeletalMeshComp->SetupAttachment(CapsuleComp);
+	SkeletalMeshComp->SetupAttachment(SceneComp);
 
 	//skeletal mesh position setting
 	SkeletalMeshComp->SetRelativeLocation(FVector(0.f, 0.f, -48.f));
@@ -43,7 +47,7 @@ AFlyingCharacter::AFlyingCharacter()
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp);
-		
+			
 	//disable simulate physics
 	CapsuleComp->SetSimulatePhysics(false);
 	SkeletalMeshComp->SetSimulatePhysics(false);
@@ -74,8 +78,6 @@ void AFlyingCharacter::Tick(float DeltaTime)
 
 void AFlyingCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	if (UEnhancedInputComponent* EnhancedInputComp = Cast<UEnhancedInputComponent>(PlayerInputComponent))
@@ -115,7 +117,14 @@ void AFlyingCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 					, this
 					, &AFlyingCharacter::Look);
 			}
-
+			if (PlayerController->LookAction)
+			{
+				EnhancedInputComp->BindAction(
+					PlayerController->LookAction
+					, ETriggerEvent::Completed
+					, this
+					, &AFlyingCharacter::StopLook);
+			}
 			if (PlayerController->UpDownAction)
 			{
 				EnhancedInputComp->BindAction(
@@ -179,7 +188,6 @@ void AFlyingCharacter::Move(const FInputActionValue& value)
 
 void AFlyingCharacter::StartMove(const FInputActionValue& value)
 {
-	//[TODO] Change to Skeletal Mesh's rotation
 	CurrentRotation = GetActorRotation();
 	OriginRotator = CurrentRotation;
 
@@ -197,6 +205,13 @@ void AFlyingCharacter::Look(const FInputActionValue& value)
 	FRotator NewRotation = FRotator(LookInput.Y, LookInput.X, 0.f) * LookSpeed * GetWorld()->GetDeltaSeconds();
 
 	AddActorLocalRotation(NewRotation);
+
+	IsYawMoving = true;
+}
+
+void AFlyingCharacter::StopLook(const FInputActionValue& value)
+{
+	IsYawMoving = false;
 }
 
 void AFlyingCharacter::UpDown(const FInputActionValue& value)
@@ -242,11 +257,13 @@ void AFlyingCharacter::TiltMoving()
 	{		
 		CurrentRotation.Pitch -= DeltaPitch * 10.f * GetWorld()->GetDeltaSeconds();		
 		AddActorLocalRotation(FRotator(-DeltaPitch * 10.f * GetWorld()->GetDeltaSeconds(), 0.f, 0.f));
+		//SceneComp->AddLocalRotation(FRotator(-DeltaPitch * 10.f * GetWorld()->GetDeltaSeconds(), 0.f, 0.f));
 	}
 	if (!IsPositiveX && CurrentRotation.Pitch <= TargetPitch)
 	{
 		CurrentRotation.Pitch += -DeltaPitch * 10.f * GetWorld()->GetDeltaSeconds();
 		AddActorLocalRotation(FRotator(-DeltaPitch * 10.f * GetWorld()->GetDeltaSeconds(), 0.f, 0.f));
+		//SceneComp->AddLocalRotation(FRotator(-DeltaPitch * 10.f * GetWorld()->GetDeltaSeconds(), 0.f, 0.f));
 	}
 
 	//Tilt Y(Roll)
@@ -254,20 +271,30 @@ void AFlyingCharacter::TiltMoving()
 	{
 		CurrentRotation.Roll += DeltaRoll * 10.f * GetWorld()->GetDeltaSeconds();
 		AddActorLocalRotation(FRotator(0.f, 0.f, DeltaRoll * 10.f * GetWorld()->GetDeltaSeconds()));
+		//SceneComp->AddLocalRotation(FRotator(0.f, 0.f, DeltaRoll * 10.f * GetWorld()->GetDeltaSeconds()));
 	}
 	if (!IsPositiveY && CurrentRotation.Roll >= TargetRoll)
 	{
 		CurrentRotation.Roll += DeltaRoll * 10.f * GetWorld()->GetDeltaSeconds();
 		AddActorLocalRotation(FRotator(0.f, 0.f, DeltaRoll * 10.f * GetWorld()->GetDeltaSeconds()));
+		//SceneComp->AddLocalRotation(FRotator(0.f, 0.f, DeltaRoll * 10.f * GetWorld()->GetDeltaSeconds()));
 	}
-	
+
 	//[stop]
 	//back to origin rotator
 	if(Velocity.Length() == 0.f)
 	{		
 		FRotator CurrentRotator = GetActorRotation();
+		if (IsYawMoving)
+		{
+			OriginRotator = GetActorRotation();
+			OriginRotator.Roll = 0.f;
+		}
 		FRotator ToOriginRotator = FMath::Lerp(CurrentRotator, OriginRotator, GetWorld()->GetDeltaSeconds() * 8.f);
-
-		SetActorRotation(ToOriginRotator);				
+		TargetPitch = 0.f;
+		TargetRoll = 0.f;
+		DeltaPitch = 0.f;
+		DeltaRoll = 0.f;
+		SetActorRotation(ToOriginRotator);
 	}
 }

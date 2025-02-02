@@ -7,6 +7,7 @@
 class UCapsuleComponent;
 class USpringArmComponent;
 class UCameraComponent;
+class USceneComponent;
 struct FInputActgionValue;
 
 UCLASS()
@@ -34,6 +35,8 @@ public:
 	UFUNCTION()
 	void Look(const FInputActionValue& value);
 	UFUNCTION()
+	void StopLook(const FInputActionValue& value);
+	UFUNCTION()
 	void UpDown(const FInputActionValue& value);
 	UFUNCTION()
 	void Roll(const FInputActionValue& value);
@@ -48,6 +51,8 @@ public:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
 	TObjectPtr<UCapsuleComponent> CapsuleComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
+	TObjectPtr<USceneComponent> SceneComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
 	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
@@ -78,4 +83,6 @@ private:
 	bool IsMoveStart;
 	bool IsPositiveX;
 	bool IsPositiveY;
+
+	bool IsYawMoving;
 };
