@@ -18,9 +18,6 @@ class SCC_CH3_7_API AFlyingCharacter : public APawn
 public:
 	AFlyingCharacter();
 
-protected:
-	virtual void BeginPlay() override;
-
 public:	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -40,13 +37,20 @@ public:
 	void UpDown(const FInputActionValue& value);
 	UFUNCTION()
 	void Roll(const FInputActionValue& value);
+	UFUNCTION()
+	void StartRoll(const FInputActionValue& value);
+	UFUNCTION()
+	void StopRoll(const FInputActionValue& value);
+	UFUNCTION()
+	void ResetToZero(const FInputActionValue& value);
 
 	//
 	UFUNCTION()
 	bool IsGround();
-
 	UFUNCTION()
 	void TiltMoving();
+	UFUNCTION()
+	void ResetRotation(bool ResetOrigin);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
@@ -71,8 +75,8 @@ private:
 	float MaxTraceDistance;
 	float MaxCollisionSphereRadius;
 
-	FRotator OriginRotator;
 	FVector Velocity;
+	FRotator OriginRotator;
 	FRotator CurrentRotation;
 	
 	double TargetPitch;
@@ -80,9 +84,12 @@ private:
 	double DeltaPitch;
 	double DeltaRoll;
 
-	bool IsMoveStart;
-	bool IsPositiveX;
-	bool IsPositiveY;
+	int IsPositiveX;
+	int IsPositiveY;
 
+	bool IsMoveStart;
 	bool IsYawMoving;
+	bool IsRollMoving;
+
+	float ResetSpeed;
 };

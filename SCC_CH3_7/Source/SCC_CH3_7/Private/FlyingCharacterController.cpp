@@ -31,6 +31,12 @@ AFlyingCharacterController::AFlyingCharacterController()
 	{
 		UpDownAction = IA_UpDown.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction>IA_Reset(TEXT("/Game/Inputs/IA_Reset.IA_Reset"));
+	if (IA_Reset.Succeeded())
+	{
+		ResetToZeroAction = IA_Reset.Object;
+	}
 }
 
 void AFlyingCharacterController::BeginPlay()
