@@ -9,9 +9,9 @@
 #include "NiagaraComponent.h"
 
 AFlyingCharacter::AFlyingCharacter()
-	:MoveSpeed(500.f)
-	,LookSpeed(300.f)
-	,RollSpeed(200.f)
+	:MoveSpeed(400.f)
+	,LookSpeed(200.f)
+	,RollSpeed(100.f)
 	,UpSpeed(300.f)
 	,Gravity(FVector(0.f, 0.f, -98.f))
 	,MaxTraceDistance(20.f)
@@ -100,6 +100,7 @@ void AFlyingCharacter::Tick(float DeltaTime)
 
 	//Tilt
 	TiltMoving();
+	CollisionCheck();
 }
 
 void AFlyingCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -383,4 +384,28 @@ void AFlyingCharacter::ResetRotation(bool ResetOrigin)
 	TargetRoll = 0.f;
 	DeltaPitch = 0.f;
 	DeltaRoll = 0.f;
+}
+
+void AFlyingCharacter::CollisionCheck()
+{
+	FVector Start = GetActorLocation();
+	FVector End = Start + FVector::DownVector * 10.f;
+
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(MaxCollisionSphereRadius);
+	FHitResult HitResult;
+
+	bool HasHit = GetWorld()->SweepSingleByChannel(HitResult, Start, End, FQuat::Identity, ECC_WorldStatic, Sphere);
+	
+	if (HasHit)
+	{
+		if (!Controller)
+			return;
+
+		FVector HitVector = GetActorForwardVector();
+		FVector NowLocation = GetActorLocation();
+		FVector ToLocation = NowLocation + -HitVector * 400.f;
+		FVector ResultLocation = FMath::Lerp(NowLocation, ToLocation, GetWorld()->GetDeltaSeconds() * 100.f);
+
+		SetActorLocation(ResultLocation);
+	}
 }

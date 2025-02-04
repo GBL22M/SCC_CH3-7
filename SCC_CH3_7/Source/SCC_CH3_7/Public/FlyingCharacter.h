@@ -54,6 +54,8 @@ public:
 	void TiltMoving();
 	UFUNCTION()
 	void ResetRotation(bool ResetOrigin);
+	UFUNCTION()
+	void CollisionCheck();
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
