@@ -11,7 +11,7 @@
 AFlyingCharacter::AFlyingCharacter()
 	:MoveSpeed(400.f)
 	,LookSpeed(200.f)
-	,RollSpeed(100.f)
+	,RollSpeed(50.f)
 	,UpSpeed(300.f)
 	,Gravity(FVector(0.f, 0.f, -98.f))
 	,MaxTraceDistance(20.f)
@@ -19,12 +19,18 @@ AFlyingCharacter::AFlyingCharacter()
 	,Velocity(FVector::ZeroVector)
 	,OriginRotator(FRotator(0.f, 0.f, 0.f))
 	,CurrentRotation(FRotator::ZeroRotator)
+	,TargetPitch(0)
+	,TargetRoll(0)
+	,DeltaPitch(0)
+	,DeltaRoll(0)
 	,IsPositiveX(0)
 	,IsPositiveY(0)
 	,IsMoveStart(false)
 	,IsYawMoving(false)
 	,IsRollMoving(false)
 	,ResetSpeed(8.f)
+	,HitBackDistance(400.f)
+	,HitBackSpeed(100.f)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -94,7 +100,7 @@ void AFlyingCharacter::Tick(float DeltaTime)
 
 	//apply gravity
 	if (!IsGround())
-	{				
+	{						
 		AddActorWorldOffset(Gravity * DeltaTime, true);
 	}	
 
@@ -403,9 +409,9 @@ void AFlyingCharacter::CollisionCheck()
 
 		FVector HitVector = GetActorForwardVector();
 		FVector NowLocation = GetActorLocation();
-		FVector ToLocation = NowLocation + -HitVector * 400.f;
-		FVector ResultLocation = FMath::Lerp(NowLocation, ToLocation, GetWorld()->GetDeltaSeconds() * 100.f);
-
+		FVector ToLocation = NowLocation + -HitVector * HitBackDistance;
+		FVector ResultLocation = FMath::Lerp(NowLocation, ToLocation, GetWorld()->GetDeltaSeconds() * HitBackSpeed);
+		
 		SetActorLocation(ResultLocation);
 	}
 }

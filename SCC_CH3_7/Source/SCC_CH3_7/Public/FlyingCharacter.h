@@ -71,7 +71,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
 	TObjectPtr<UNiagaraComponent> NiagaraComp1;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")	
 	TObjectPtr<UNiagaraComponent> NiagaraComp2;
 
@@ -103,4 +102,7 @@ private:
 	bool IsRollMoving;
 
 	float ResetSpeed;
+
+	float HitBackDistance;
+	float HitBackSpeed;
 };
