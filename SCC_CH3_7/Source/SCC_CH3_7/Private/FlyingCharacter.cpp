@@ -5,6 +5,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 AFlyingCharacter::AFlyingCharacter()
 	:MoveSpeed(500.f)
@@ -51,7 +53,23 @@ AFlyingCharacter::AFlyingCharacter()
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp);
-			
+		
+	NiagaraComp1 = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara Particle1"));
+	NiagaraComp2 = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Niagara Particle2"));
+
+	NiagaraComp1->SetupAttachment(SceneComp);
+	NiagaraComp2->SetupAttachment(SceneComp);
+
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem>NiagaraAsset1(TEXT("/Game/Effects/NS_Line.NS_Line"));
+	if (NiagaraAsset1.Succeeded())
+	{
+		NiagaraComp1->SetAsset(NiagaraAsset1.Object);
+		NiagaraComp2->SetAsset(NiagaraAsset1.Object);
+	}
+
+	NiagaraComp1->AddRelativeLocation(FVector(0.f, -40.f, -20.f));
+	NiagaraComp2->AddRelativeLocation(FVector(0.f, 40.f, -20.f));
+
 	//disable simulate physics
 	CapsuleComp->SetSimulatePhysics(false);
 	SkeletalMeshComp->SetSimulatePhysics(false);
@@ -292,11 +310,8 @@ bool AFlyingCharacter::IsGround()
 {
 	FVector Start = GetActorLocation();
 	FVector End = Start + FVector::DownVector * MaxTraceDistance;
-	//DrawDebugLine(GetWorld(), Start, End, FColor::Red);
 
 	FCollisionShape Sphere = FCollisionShape::MakeSphere(MaxCollisionSphereRadius);
-	//DrawDebugSphere(GetWorld(),	End, MaxCollisionSphereRadius, 20, FColor::Blue);
-
 	FHitResult HitResult;
 
 	bool HasHit = GetWorld()->SweepSingleByChannel(HitResult, Start, End, FQuat::Identity, ECC_WorldStatic, Sphere);

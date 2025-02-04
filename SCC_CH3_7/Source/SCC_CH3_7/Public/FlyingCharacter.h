@@ -10,6 +10,9 @@ class UCameraComponent;
 class USceneComponent;
 struct FInputActgionValue;
 
+class UNiagaraSystem;
+class UNiagaraComponent;
+
 UCLASS()
 class SCC_CH3_7_API AFlyingCharacter : public APawn
 {
@@ -63,6 +66,12 @@ public:
 	TObjectPtr<USpringArmComponent> SpringArmComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player|Components")
 	TObjectPtr<UCameraComponent> CameraComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")
+	TObjectPtr<UNiagaraComponent> NiagaraComp1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Components")	
+	TObjectPtr<UNiagaraComponent> NiagaraComp2;
 
 private:
 	float MoveSpeed;
