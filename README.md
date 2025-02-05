@@ -86,7 +86,7 @@ https://drive.google.com/file/d/13dGKQwgyRxK478yzeuiRclVL6T3S-cmB/view?usp=drive
 * 부족한 점
   * 현재 움직임은 Tilting 하는 순간이 WASD 키를 입력 받은 순간만 수행하며, 중간에 Roll이나 Yaw회전이 들어오면 Tilting을 해서 원래 위치로 돌아가는 것을 하지 않는다.
   * 현재 로직이 Move를 start 하는 순간 위치를 저장해두고, Move가 끝난 순간 저장해둔 위치로 돌아가도록 되어있기 때문이다.
-  * Input Action을 사용하는 경우 Look(마우스 회전) 이 있는 상태에서 Move(키보드)를 누르면 동작을 안한다.
+  * **Look(마우스 회전) 이 있는 상태에서 Move(키보드)를 눌렀을 때에도 Tilting이 되도록 수정해야 한다.**
 * 개선 사항
   * Input Action 관련 내용 공부 후 수정
   * Roll이나 Yaw를 한 경우 위치를 다시 저장하기
