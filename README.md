@@ -19,8 +19,8 @@
 
 ### 2. 구현 내용
 #### 필수 과제
-* **C++ Pawn 클래스 구현**
-  * Pawn을 상속받아 구현하였고, 아래 사진과 같은 구조를 이루도록 구현
+* **C++ Pawn 클래스 구현** 
+  * Pawn을 상속받아 구현하였고, 아래 사진과 같은 구조를 이루도록 구현 <br/>
    ![image](https://github.com/user-attachments/assets/eeb9076e-8e88-4c3b-931f-b06c501c892c)
    ![image](https://github.com/user-attachments/assets/4050c036-b2b9-400c-a1d9-455b2ec52d94)
 * **enhanced input mapping & binding**
